@@ -1,6 +1,6 @@
-This Tableau visualization work follows and bases on a Pig work which aims to find the 5 most important destinations for each BIXI station in terms of the frequency of trajets made between the two stations. We would like to visualize the result in a map of Montreal by showing some ligne between them, and also other informations.
+This Tableau visualization work follows and bases on a Pig work which aims to find the 5 most important destinations for each BIXI station in terms of the frequency of trajets made between two stations. We would like to visualize the result in a map of Montreal by showing some ligne between them, and also other informations.
 
-This work refers to an example as followed:
+This work refers to an example:
 https://onlinehelp.tableau.com/current/pro/desktop/en-us/help.htm#maps_howto_origin_destination.html
 
 Two source datasets used:
@@ -18,13 +18,13 @@ code,name,latitude,longitude
 6712,LaSalle / Crawford,45.43791380065227,-73.58274042606354
 
 
-Some data processing work is done by python to get the right format of input data in Tableau.
+Some data processing work is done in python to get the right format of input data in Tableau.
 program file: topEndStation2017.py
 input files: result_topEndStation2017_part-r-00000, Stations_2017.csv
 output file: les5PlusImportantDestinations.csv
 
 
 Tableau
-file of Tableau: les5PlusImportantDestinations-BIXI
+file of Tableau: les5PlusImportantDestinations-BIXI.twb
 input files:les5PlusImportantDestinations.csv, Stations_2017.csv
 
