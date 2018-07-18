@@ -6,9 +6,7 @@ https://onlinehelp.tableau.com/current/pro/desktop/en-us/help.htm#maps_howto_ori
 Two source datasets used:
 1, the result of Pig work, named as "result_topEndStation2017_part-r-00000"
 {(5002,5005,14),(5002,5006,34),(5002,5003,15),(5002,5007,122),(5002,5004,41)}
-
 {(5003,6034,21),(5003,5004,31),(5003,5005,23),(5003,5006,39),(5003,5007,89)}
-
 {(5004,5005,15),(5004,5006,22),(5004,5007,221),(5004,5002,31),(5004,5003,44)}
 note: every three number in the parentheses denote (origin_station, destination_station, number_of_trajets)
 2, stations of BIXI in 2017, named as "Stations_2017.csv", which can be downloaded from BIXI.com
