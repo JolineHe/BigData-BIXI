@@ -2,9 +2,8 @@ deplacements = load '/pmv/deplacements/2017/*.*'  USING PigStorage(',') as (star
 
 deplacements_minus = FOREACH deplacements GENERATE start_station_code,end_station_code,duration_sec;
 
-deplacements_important = FILTER deplacements_minus by duration_sec > 180 and start_station_code  != end_station_code;
 
-start_end = GROUP deplacements_important by (start_station_code,end_station_code);
+start_end = GROUP deplacements_minus by (start_station_code,end_station_code);
 
 start_end_freq = FOREACH start_end GENERATE flatten($0),COUNT($1) as count;
 
