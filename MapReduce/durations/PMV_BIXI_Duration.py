@@ -1,8 +1,3 @@
-# coded in PyCharms
-# parametres: data/OD_2017-11.csv -o output_PMV_BIXI_duration.txt
-# le but de ce code est de trouver la distribution de la duration de deplacement du bixi.
-
-
 from mrjob.job import MRJob
 
 class PMV_BIXI_Duration(MRJob):
