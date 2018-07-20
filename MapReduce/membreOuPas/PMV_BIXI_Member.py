@@ -1,7 +1,3 @@
-# le but de ce code est de calculer les deplacements par membre et non_membre
-# parametres: data/2017 -o output_PMV_BIXI_Member_2017
-
-
 from mrjob.job import MRJob
 
 class PMV_BIXI_Member(MRJob):
