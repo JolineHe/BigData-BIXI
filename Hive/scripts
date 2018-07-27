@@ -1,0 +1,128 @@
+create database pmv;
+
+use pmv;
+
+-- Créer la table des stations BIXI
+CREATE table BIXI_stations (
+station_id INT,
+station_name STRING,
+station_lattitude float,
+station_longitude float,
+altitude int,
+postalCode STRING
+)
+PARTITIONED BY (year INT)
+row format DELIMITED
+FIELDS TERMINATED BY ','
+tblproperties("skip.header.line.count"="1"); 
+
+-- Téléverser data du HDFS vers table 
+load data inpath '/pmv/Stations_2017.csv' overwrite INTO TABLE BIXI_stations partition(year=2017);
+
+-- Créer la table des déplacements en BIXI
+CREATE table BIXI_OD (
+start_date string, 
+start_station_code int, 
+end_date string, 
+end_station_code int, 
+duration_sec int, 
+is_member int
+)
+PARTITIONED BY (year INT, month INT)
+row format DELIMITED
+FIELDS TERMINATED BY ','
+tblproperties("skip.header.line.count"="1"); 
+
+-- Téléverser data du HDFS vers table 
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-04.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=4);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-05.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=5);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-06.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=6);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-07.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=7);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-08.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=8);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-09.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=9);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-10.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=10);
+LOAD data local INPATH '/home/qiaoling2000/pmv/deplacement/2017/OD_2017-11.csv' overwrite INTO TABLE BIXI_OD partition(year=2017, month=11);
+
+================================
+
+CREATE table BIXI_OD_temp (
+start_date timestamp, 
+start_station_code int, 
+end_date timestamp, 
+end_station_code int, 
+duration_sec int, 
+is_member int
+)
+PARTITIONED BY (year INT, month INT)
+row format DELIMITED
+FIELDS TERMINATED BY ',';
+
+
+insert overwrite TABLE bixi_od_temp partition(year,month)
+select 
+from_unixtime(unix_timestamp(t.start_date, 'yyyy-MM-dd HH:mm')),
+t.start_station_code,
+from_unixtime(unix_timestamp(t.end_date, 'yyyy-MM-dd HH:mm')),
+t.end_station_code,
+t.duration_sec,
+t.is_member,
+t.year,
+t.month
+from BIXI_OD t;
+
+-- nombre de départs en fonction de l'heure
+--output in file "pmv_result_countByHour_2017"
+
+select  hour(od.start_date) hr, count(od.start_station_code) nb from bixi_od_temp od
+group by hour(od.start_date) ;
+
+==================================
+
+
+-- Sort the stations by the count of depart 
+-- output in file "pmv_result_triepardepart_000000_0"
+Create table trieParDepart as
+Select bo.start_station_code, bs.station_name, count(*) cnt
+From bixi_od bo
+Left Join bixi_stations bs
+on bo.start_station_code=bs.station_id
+Group by bo.start_station_code,bs.station_name
+Order by cnt desc;
+
+
+-- Sort the stations by the count of arrive
+-- output in file 'pmv_result_triepararrive_000000_0'
+Create table trieParArrive as
+Select bo.end_station_code, bs.station_name, count(*) cnt
+From bixi_od bo
+Left Join bixi_stations bs
+on bo.end_station_code=bs.station_id
+Group by bo.end_station_code,bs.station_name
+Order by cnt desc;
+
+
+
+==================================
+
+-- creer une table qui contient la durée moyenne des déplacements entre deux stations.
+create table bixi_StartEndDuration (start_station_code int, end_station_code int, duration_sec int);
+
+
+-- générer les données de la table bixi_StartEndDuration
+insert into bixi_StartEndDuration
+select start_station_code, end_station_code, round(avg(duration_sec)) from bixi_od
+group by start_station_code, end_station_code;
+
+
+-- Trouver la station intermédiaire entre les stations « Métro Langelier (Sherbrooke / Langelier » (7016) et « Island / Centre »( 6350) pour la plus petite durée de déplacement.
+-- output in "pmv_result_stationIntermidiare_7016_6350"
+select s1.start_station_code, s1.end_station_code, s1.duration_sec, 
+s2.start_station_code, s2.end_station_code, s2.duration_sec, 
+(s1.duration_sec + s2.duration_sec) as duration
+from bixi_startendduration s1
+join bixi_startendduration  s2 on s1.end_station_code = s2.start_station_code
+where s1.start_station_code = 7016 and s2.end_station_code = 6350 
+order by (s1.duration_sec + s2.duration_sec)
+
+
+
